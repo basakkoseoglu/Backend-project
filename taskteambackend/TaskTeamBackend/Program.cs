@@ -24,6 +24,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
 builder.Services.AddScoped<PersonelService>();
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<TaskService>();
 
 // Controller’ları ekle
 builder.Services.AddControllers();
