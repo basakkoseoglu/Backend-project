@@ -7,6 +7,7 @@ namespace TaskTeamBackend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PersonelController:ControllerBase
 {
     private readonly PersonelService _personelService;
@@ -17,7 +18,7 @@ public class PersonelController:ControllerBase
     }
     
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetPersonelList()
     {
         var personelList = await _personelService.GetPersonelListAsync();
@@ -25,6 +26,7 @@ public class PersonelController:ControllerBase
     }
     
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddPersonel([FromBody] PersonelCreateDto dto)
     {
         var newId = await _personelService.AddPersonelAsync(dto.FirstName, dto.LastName,dto.Email, dto.Role, dto.Salary,dto.Password);
@@ -32,7 +34,7 @@ public class PersonelController:ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePersonel(Guid id, [FromBody] PersonelUpdateDto dto)
     {
         var updatedId=await _personelService.UpdatePersonelAsync(id,dto.FirstName,dto.LastName,dto.Role,dto.Salary);
@@ -40,7 +42,7 @@ public class PersonelController:ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePersonel(Guid id)
     {
         var deletedId=await _personelService.DeletePersonelAsync(id);
