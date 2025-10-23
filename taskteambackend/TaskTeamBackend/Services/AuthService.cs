@@ -83,6 +83,43 @@ public class AuthService
             Role = user.Role
         };
     }
+    public async Task<RegisterResponse?> RegisterAsync(RegisterRequest request)
+    {
+        var checkQuery = "SELECT COUNT(*) FROM app.personel WHERE email = @Email";
+        var exists = await _dbConnection.ExecuteScalarAsync<int>(checkQuery, new { request.Email });
+        if (exists > 0)
+            return null; 
+
+        var passwordHash = HashPassword(request.Password);
+
+        var insertQuery = @"
+        INSERT INTO app.personel (first_name, last_name, email, role, salary, password_hash, is_active)
+        VALUES (@FirstName, @LastName, @Email, @Role, @Salary, @PasswordHash, true)
+        RETURNING id;";
+
+        var newId = await _dbConnection.ExecuteScalarAsync<Guid>(insertQuery, new
+        {
+            request.FirstName,
+            request.LastName,
+            request.Email,
+            request.Role,
+            request.Salary,
+            PasswordHash = passwordHash
+        });
+
+        var token = GenerateJwtToken(newId, request.Email, request.FirstName, request.LastName, request.Role);
+
+        return new RegisterResponse
+        {
+            UserId = newId,
+            Token = token,
+            Email = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Role = request.Role
+        };
+    }
+
 }
 public class PersonelAuthDto
 {
@@ -104,6 +141,26 @@ public class LoginResponse
 {
     public string Token { get; set; } = null!;
     public Guid UserId { get; set; }
+    public string Email { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
+    public string Role { get; set; } = null!;
+}
+
+public class RegisterRequest
+{
+    public string FirstName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
+    public string Email { get; set; } = null!;
+    public string Password { get; set; } = null!;
+    public string Role { get; set; } = "User";
+    public decimal Salary { get; set; }
+}
+
+public class RegisterResponse
+{
+    public Guid UserId { get; set; }
+    public string Token { get; set; } = null!;
     public string Email { get; set; } = null!;
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
