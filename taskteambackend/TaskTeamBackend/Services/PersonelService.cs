@@ -6,22 +6,33 @@ namespace TaskTeamBackend.Services;
 public class PersonelService
 {
     private readonly IDbConnection _dbConnection;
-    public PersonelService(IDbConnection dbConnection)
+    private readonly AuthService _authService;
+
+    
+    public PersonelService(IDbConnection dbConnection,AuthService authService)
     {
         _dbConnection = dbConnection;
+        _authService = authService;
     }
-    // personel add
-    public async Task<Guid> AddPersonelAsync(string firstName, string lastName, string role, decimal salary)
+    public async Task<Guid> AddPersonelAsync(string firstName, string lastName, string email, string role, decimal salary, string password)
     {
-        var query = "SELECT app.add_personel(@FirstName,@LastName,@Role,@Salary);";
-        var parameters = new
+        var passwordHash = _authService.HashPassword(password);
+        
+        var query = @"
+            INSERT INTO app.personel(first_name, last_name, email, role, salary, password_hash)
+            VALUES (@FirstName, @LastName, @Email, @Role, @Salary, @PasswordHash)
+            RETURNING id;";
+        
+        var newId = await _dbConnection.ExecuteScalarAsync<Guid>(query, new
         {
             FirstName = firstName,
             LastName = lastName,
+            Email = email,
             Role = role,
-            Salary = salary
-        };
-        var newId=await _dbConnection.ExecuteScalarAsync<Guid>(query, parameters);
+            Salary = salary,
+            PasswordHash = passwordHash
+        });
+        
         return newId;
     }
     public async Task<IEnumerable<PersonelDto>> GetPersonelListAsync()
@@ -60,6 +71,7 @@ public class PersonelDto
     public Guid Id { get; set; }
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
+    public string Email { get; set; } = null!; 
     public string? Role { get; set; }
     public decimal? Salary { get; set; }
     public DateTime CreatedAt { get; set; }
