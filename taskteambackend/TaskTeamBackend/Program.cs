@@ -105,6 +105,7 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+    c.OperationFilter<TaskTeamBackend.Swagger.FileUploadOperationFilter>();
 });
 
 var app = builder.Build();
@@ -121,7 +122,7 @@ if (app.Environment.IsDevelopment())
 
 // CORS middleware (UseHttpsRedirection öncesi)
 app.UseCors("AllowAll");
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
